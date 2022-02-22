@@ -77,7 +77,7 @@
               <div class="row">
                 <div class="col"></div>
                 <!--Форма ввода нового пользователя-->
-                <form class="col-2" th:action="@{/admin}" th:method="post" th:object="${newuser}" th:align="center">
+                <form class="col-2" th:action="@{/data}" th:method="post" th:object="${newuser}" th:align="center">
                   <div class="row">
                     <p><strong>Добавьте нового пользователя</strong></p>
                   </div>
@@ -150,7 +150,7 @@
 
   <!-- Модальное окно по удалению пользователя -->
   <div class="myDeleteForm">
-    <form th:action="@{/admin/edit}" th:method="DELETE">
+    <form th:action="@{/data/edit}" th:method="DELETE">
 
       <div class="modal fade" id="exampleModalDelete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabelDelete" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -202,7 +202,7 @@
 
 <!-- Модальное окно по редактированию пользователя -->
   <div class="myEditForm">
-    <form th:action="@{/admin/edit}" th:method="PATCH">
+    <form th:action="@{/data/edit}" th:method="PATCH">
 
       <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabelEdit" aria-hidden="true">
         <div class="modal-dialog" role="document">

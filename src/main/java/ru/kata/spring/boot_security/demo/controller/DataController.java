@@ -2,21 +2,21 @@ package ru.kata.spring.boot_security.demo.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import ru.kata.spring.boot_security.demo.models.MyUser;
 import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
 @RequestMapping("/data")
 public class DataController {
-
+    private final String firstPage = "redirect:/admin";
     private final UserService userService;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -38,6 +38,30 @@ public class DataController {
     @GetMapping("/findAll")
     public List<MyUser> findAll() {
         return userRepository.findAll();
+    }
+
+
+
+    @PostMapping()
+    public ModelAndView createUser(@ModelAttribute("user") @Valid MyUser user, BindingResult bindingResult) {
+        ModelAndView mav = new ModelAndView(firstPage);
+        if (bindingResult.hasErrors()) return mav;
+        userService.saveUser(user);
+        return mav;
+    }
+
+    @PatchMapping("/edit")
+    public ModelAndView updateUserFromModal(MyUser user) {
+        ModelAndView mav = new ModelAndView(firstPage);
+        userService.update(user);
+        return mav;
+    }
+
+    @DeleteMapping("/edit")
+    public ModelAndView deleteUserFromModal(MyUser user) {
+        ModelAndView mav = new ModelAndView(firstPage);
+        userRepository.delete(user);
+        return mav;
     }
 
 }

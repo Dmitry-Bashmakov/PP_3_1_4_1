@@ -45,23 +45,4 @@ public class AdminController {
         return "admin";
     }
 
-    @PostMapping()
-    public String createUser(@ModelAttribute("user") @Valid MyUser user, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) return "new";
-        usServ.saveUser(user);
-        return firstPage;
-    }
-
-    @PatchMapping("/edit")
-    public String updateUserFromModal(MyUser user) {
-        usServ.update(user);
-        return firstPage;
-    }
-
-    @DeleteMapping("/edit")
-    public String deleteUserFromModal(MyUser user) {
-        userRepository.delete(user);
-        return firstPage;
-    }
-
 }
