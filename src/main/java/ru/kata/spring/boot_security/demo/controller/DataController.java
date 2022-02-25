@@ -2,6 +2,8 @@ package ru.kata.spring.boot_security.demo.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -16,17 +18,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/data")
 public class DataController {
-    private final String firstPage = "redirect:/admin";
+
     private final UserService userService;
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
 
     @Autowired
-    public DataController(UserService userService, UserRepository userRepository, RoleRepository roleRepository) {
+    public DataController(UserService userService, UserRepository userRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
     }
+
 
     @GetMapping("/findOne")
     public MyUser findOne(@RequestParam(value = "id", required = true) Long id) {
@@ -41,27 +42,22 @@ public class DataController {
     }
 
 
-
-    @PostMapping()
-    public ModelAndView createUser(@ModelAttribute("user") @Valid MyUser user, BindingResult bindingResult) {
-        ModelAndView mav = new ModelAndView(firstPage);
-        if (bindingResult.hasErrors()) return mav;
+    @PostMapping("/user")
+    public ResponseEntity<MyUser> newUser(@RequestBody MyUser user) {
         userService.saveUser(user);
-        return mav;
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PatchMapping("/edit")
-    public ModelAndView updateUserFromModal(MyUser user) {
-        ModelAndView mav = new ModelAndView(firstPage);
+    @PutMapping("/user")
+    public ResponseEntity<MyUser> updateUser(@RequestBody MyUser user) {
         userService.update(user);
-        return mav;
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("/edit")
-    public ModelAndView deleteUserFromModal(MyUser user) {
-        ModelAndView mav = new ModelAndView(firstPage);
-        userRepository.delete(user);
-        return mav;
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<MyUser> deleteUserById(@PathVariable("id") long id) {
+        userRepository.deleteById(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

@@ -191,7 +191,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-              <input type="submit" class="btn btn-danger" value="Удалить"/>
+              <button type="button" data-userid="" class="btn btn-danger" id="modalDelButton">Удалить</button>
             </div>
           </div>
         </div>
@@ -258,7 +258,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-              <input type="submit" class="btn btn-success" value="Сохранить"/>
+              <button type="button" data-userid="" class="btn btn-danger" id="modalEditButton">Сохранить изменения</button>
             </div>
           </div>
         </div>
@@ -267,23 +267,88 @@
     </form>
   </div>
 
+
+
 <script type="text/javascript">
 
+  //регистрация URI'ев для выполнения операций через RestController
   const urlFindById = 'http://localhost:8080/data/findOne?id=';
+  const urlFindAll = 'http://localhost:8080/data/findAll';
 
-  let allModalRegistration = () => {
+  const userFetchService = {
+    head: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Referer': null
+    },
+
+    updateUser: async (user) => await fetch(`data/user`, {method: 'PUT', headers: userFetchService.head, body: JSON.stringify(user)}),
+    deleteUser: async (id) => await fetch(`data/user/${id}`, {method: 'DELETE', headers: userFetchService.head})
+  }
+
+  const usersTable = document.querySelector('#allUsersTable');
+
+  //заполнение таблицы всех пользователей
+  let fillTable = (users) => {
+    let output = '';
+    output += `
+          <table class="table caption-top">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Имя</th>
+                      <th scope="col">Фамилия</th>
+                      <th scope="col">Возраст</th>
+                      <th scope="col">Логин</th>
+                      <th scope="col">Роли</th>
+                      <th scope="col">Редактировать</th>
+                      <th scope="col">Удалить</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+  `;
+
+    users.forEach(user => {
+      output += `
+                  <tr>
+                    <th scope="row" th:utext="">${user.id}</th>
+                    <td th:utext="">${user.name}</td>
+                    <td th:utext="">${user.lastName}</td>
+                    <td th:utext="">${user.age}</td>
+                    <td th:utext="">${user.username}</td>
+                    <td th:utext="">${user.rolesToString}</td>
+                    <td>
+                      <a /*th:href="@{/data/findOne/(id=${user.id})}"*/ class="btn btn-success eBtn" value="${user.id}">Редактировать</a>
+                    </td>
+                    <td>
+                      <a /*th:href="@{/data/findOne/(id=${user.id})}"*/ class="btn btn-danger delBtn" value="${user.id}">Удалить</a>
+                    </td>
+                  </tr>
+    `;
+    });
+
+    output += `
+  </tbody>
+                </table>
+  `;
+    usersTable.innerHTML = output;
+  }
+
+  //регистрация "слушателей" кнопок ("Редактировать" и "Удалить") для открытия модалок
+  let allModalButtonRegistration = () => {
 
     $(document).ready(function(){
 
+        //функция обработки нажатия кнопки "Редактировать" в таблице всех пользователей
       $('.table .eBtn').on('click', function(event){
         event.preventDefault();
         console.log('Edit Modal Window opening')
-        let href = $(this).attr('href');
+        /*let href = $(this).attr('href');*/
         const userId = $(this).attr('value');
-        console.log('href1=' + href);
-        console.log('value=' + userId);
-        href = urlFindById + userId;
-        console.log('href2=' + href)
+        /*console.log('href1=' + href);*/
+        /*console.log('value=' + userId);*/
+        let href = urlFindById + userId;
+        console.log('href=' + href)
 
         /*запрос JQuery к базе данных*/
         $.get(href, function(user, status){
@@ -300,14 +365,15 @@
         $('.myEditForm #exampleModalEdit').modal();
       });
 
+        //функция обработки нажатия кнопки "Удалить" в таблице всех пользователей
       $('.table .delBtn').on('click', function(event){
         event.preventDefault();
           console.log('Delete Modal Window opening')
-        let href = $(this).attr('href');
-          console.log('href1=' + href);
-        const userId = $(this).attr('value');4
-        href = urlFindById + userId;
-          console.log('href2=' + href);
+        /*let href = $(this).attr('href');*/
+        /*  console.log('href1=' + href);*/
+        const userId = $(this).attr('value');
+        let href = urlFindById + userId;
+          console.log('href=' + href);
 
         /*запрос JQuery к базе данных*/
         $.get(href, function(user, status){
@@ -318,75 +384,91 @@
           $('.myDeleteForm #username').val(user.username);
           $('.myDeleteForm #password').val(user.password);
           $('.myDeleteForm #eRoles').val(user.rolesInString);
+          let dB = $('.myDeleteForm #modalDelButton');
+          dB[0].setAttribute('data-userid', user.id);
         });
 
         $('.myDeleteForm #exampleModalDelete').modal();
       });
 
+
+
     });
 
-  }
-  
+  };
 
-  const urlFindAll = 'http://localhost:8080/data/findAll';
-  const usersTable = document.querySelector('#allUsersTable');
-  let output = '';
+    let modalButtonListeners = () => {
+      //функция обработки нажатия кнопки "Удалить" в модалке
+      $("#exampleModalDelete").find('#modalDelButton').on('click', async (event) => {
+        console.log('Enter to Modal Del Button click; '+'Вход в режим обработки нажатия кнопки "Удалить"');
 
-  let fillTable = (users) => {
-    output += `
-            <table class="table caption-top">
-                    <thead>
-                      <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Имя</th>
-                        <th scope="col">Фамилия</th>
-                        <th scope="col">Возраст</th>
-                        <th scope="col">Логин</th>
-                        <th scope="col">Роли</th>
-                        <th scope="col">Редактировать</th>
-                        <th scope="col">Удалить</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-    `;
+        let delModal = $('#exampleModalDelete');
 
-    users.forEach(user => {
-      output += `
-                    <tr>
-                      <th scope="row" th:utext="">${user.id}</th>
-                      <td th:utext="">${user.name}</td>
-                      <td th:utext="">${user.lastName}</td>
-                      <td th:utext="">${user.age}</td>
-                      <td th:utext="">${user.username}</td>
-                      <td th:utext="">${user.rolesToString}</td>
-                      <td>
-                        <a th:href="@{/data/findOne/(id=${user.id})}" class="btn btn-success eBtn" value="${user.id}">Редактировать</a>
-                      </td>
-                      <td>
-                        <a th:href="@{/data/findOne/(id=${user.id})}" class="btn btn-danger delBtn" value="${user.id}">Удалить</a>
-                      </td>
-                    </tr>
-      `;
-    });
+        let targetButton = $(event.target);
+        let userId = targetButton.attr('data-userid');
+        console.log('userId= '+userId);
+        await userFetchService.deleteUser(userId);
+        console.log('Удален пользователь с ID: ' + userId);
 
-    output += `
-    </tbody>
-                  </table>
-    `;
-    usersTable.innerHTML = output;
-  }
+        delModal.modal('hide');
+        console.log('Delete Modal window was closed');
+        fetch(urlFindAll)
+                .then(response => response.json())
+                .then((data) => {
+                  console.log('Получены обновленные данные по всем пользователям: '+data);
+                  fillTable(data);
+                  allModalButtonRegistration();
+                });
+        console.log('Завершено изменение таблицы пользоватетей');
+      })
 
+      //функция обработки нажатия кнопки "Редактировать" в модалке
+      $("#exampleModalEdit").find('#modalEditButton').on('click', async (event) => {
+        console.log('Вход в режим обработки нажатия кнопки "Редактировать"');
+
+        let editModal = $('#exampleModalEdit');
+
+        let id = editModal.find('#id').val().trim();
+        let name = editModal.find('#name').val().trim();
+        let lastName = editModal.find('#lastName').val().trim();
+        let age = editModal.find("#age").val().trim();
+        let username = editModal.find('#username').val().trim();
+        let password = editModal.find('#password').val().trim();
+        let roles = editModal.find('#roles').val();
+
+        let user = {
+          id: id,
+          name: name,
+          lastName: lastName,
+          age: age,
+          username: username,
+          password: password,
+          roles: roles
+        }
+        console.log("Данные user после редактирования: " + user.toString());
+        await userFetchService.updateUser(user);
+        console.log('Отредактирован пользователь с ID: ' + user.id);
+
+        editModal.modal('hide');
+        fetch(urlFindAll)
+                .then(response => response.json())
+                .then((data) => {
+                  fillTable(data);
+                  allModalButtonRegistration();
+                });
+        console.log('Завершено изменение таблицы пользователей после редактирования');
+      })
+    };
 
   fetch(urlFindAll)
     .then(response => response.json())
     .then((data) => {
       fillTable(data);
-      allModalRegistration();
+      allModalButtonRegistration();
+      modalButtonListeners();
     });
 
-
 </script>
-
 
   </body>
 </html>
